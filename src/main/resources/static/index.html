@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Electronic Devices Store</title>
+
+    <style>
+        body { margin:0; font-family:Arial; background:#f1f3f6; }
+
+        header {
+            background:#2874f0;
+            color:white;
+            padding:12px 20px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        header button {
+            margin-left:10px;
+            padding:6px 10px;
+            border:none;
+            cursor:pointer;
+        }
+
+        .container {
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
+            padding:20px;
+        }
+
+        .card {
+            background:white;
+            width:230px;
+            margin:15px;
+            padding:15px;
+            border-radius:6px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+            text-align:center;
+        }
+
+        .card img {
+            width:100%;
+            height:140px;
+            object-fit:contain;
+        }
+
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <b>Electronics Store</b>
+    <div>
+        <button onclick="loadProducts()">Home</button>
+        <button onclick="showCart()">Cart</button>
+        <button onclick="showLogin()">Login</button>
+        <button onclick="logout()">Logout</button>
+    </div>
+</header>
+
+<!-- PRODUCTS -->
+<div id="products" class="container"></div>
+
+<!-- LOGIN -->
+<div id="login" class="container hidden">
+    <div>
+        <h2>Login</h2>
+        <input id="email" placeholder="Email"><br><br>
+        <input id="password" type="password" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
+    </div>
+</div>
+
+<!-- CART -->
+<div id="cart" class="container hidden">
+    <div>
+        <h2>My Cart</h2>
+        <ul id="cartItems"></ul>
+        <button onclick="goToPayment()">Proceed to Payment</button>
+    </div>
+</div>
+
+<script>
+const productsDiv = document.getElementById("products");
+const loginDiv = document.getElementById("login");
+const cartDiv = document.getElementById("cart");
+
+function hideAll() {
+    productsDiv.classList.add("hidden");
+    loginDiv.classList.add("hidden");
+    cartDiv.classList.add("hidden");
+}
+
+/* ================= PRODUCTS ================= */
+
+function loadProducts() {
+    hideAll();
+    productsDiv.classList.remove("hidden");
+    productsDiv.innerHTML = "";
+
+    fetch("/api/products")
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(p => {
+                productsDiv.innerHTML += `
+                    <div class="card">
+                        <img src="/images/${p.image}">
+                        <h4>${p.name}</h4>
+                        <p>${p.brand}</p>
+                        <b>₹${p.price}</b><br><br>
+                        <button onclick="addToCart(${p.id})">Add to Cart</button>
+                    </div>
+                `;
+            });
+        });
+}
+
+/* ================= AUTH ================= */
+
+function showLogin() {
+    hideAll();
+    loginDiv.classList.remove("hidden");
+}
+
+function login() {
+    fetch("/api/auth/login", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({
+            email: email.value,
+            password: password.value
+        })
+    })
+    .then(res => res.json())
+    .then(user => {
+        localStorage.setItem("userId", user.id);
+        localStorage.setItem("role", user.role);
+        loadProducts();
+    })
+    .catch(() => alert("Invalid login"));
+}
+
+function logout() {
+    localStorage.clear();
+    showLogin();
+}
+
+/* ================= CART ================= */
+
+function addToCart(productId) {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+        showLogin();
+        return;
+    }
+
+    fetch("/api/cart", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ userId, productId, quantity:1 })
+    })
+    .then(() => alert("Added to cart"));
+}
+
+function showCart() {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+        showLogin();
+        return;
+    }
+
+    hideAll();
+    cartDiv.classList.remove("hidden");
+    cartItems.innerHTML = "";
+
+    fetch(`/api/cart/${userId}`)
+        .then(res => res.json())
+        .then(items => {
+            items.forEach(i => {
+                cartItems.innerHTML += `
+                    <li>Product ID: ${i.productId} | Qty: ${i.quantity}</li>
+                `;
+            });
+        });
+}
+
+function goToPayment() {
+    window.location.href = "payment.html";
+}
+
+/* ================= DEFAULT ================= */
+
+loadProducts();
+</script>
+
+</body>
+</html>

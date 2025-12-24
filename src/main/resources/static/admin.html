@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f1f3f6;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #2874f0;
+        }
+
+        input, button {
+            margin: 5px;
+            padding: 8px;
+        }
+
+        button {
+            background: #2874f0;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background: #2874f0;
+            color: white;
+        }
+
+        img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Admin Panel – Manage Products</h2>
+
+<div>
+    <input id="name" placeholder="Product Name">
+    <input id="brand" placeholder="Brand">
+    <input id="price" type="number" placeholder="Price">
+    <input id="category" placeholder="Category">
+    <input type="file" id="image">
+    <button onclick="addProduct()">Add Product</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Brand</th>
+            <th>Price</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="productTable"></tbody>
+</table>
+
+<script>
+const role = localStorage.getItem("role");
+if (role !== "ADMIN") {
+    alert("Access denied");
+    window.location.href = "login.html";
+}
+
+function loadProducts() {
+    fetch("http://localhost:8060/api/products")
+    .then(res => res.json())
+    .then(data => {
+        const table = document.getElementById("productTable");
+        table.innerHTML = "";
+
+        data.forEach(p => {
+            table.innerHTML += `
+                <tr>
+                    <td>${p.id}</td>
+                    <td><img src="http://localhost:8060/images/${p.image}"></td>
+                    <td>${p.name}</td>
+                    <td>${p.brand}</td>
+                    <td>₹${p.price}</td>
+                    <td>
+                        <button onclick="deleteProduct(${p.id})">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+    });
+}
+
+function addProduct() {
+    const formData = new FormData();
+    formData.append("name", name.value);
+    formData.append("brand", brand.value);
+    formData.append("price", price.value);
+    formData.append("category", category.value);
+    formData.append("image", image.files[0]);
+
+    fetch("http://localhost:8060/api/products/add", {
+        method: "POST",
+        body: formData
+    })
+    .then(() => {
+        alert("Product added successfully");
+        location.reload();
+    });
+}
+
+function deleteProduct(id) {
+    fetch(`http://localhost:8060/api/admin/products/${localStorage.getItem("userId")}/${id}`, {
+        method: "DELETE"
+    })
+    .then(() => {
+        alert("Product deleted");
+        loadProducts();
+    });
+}
+
+loadProducts();
+</script>
+
+</body>
+</html>

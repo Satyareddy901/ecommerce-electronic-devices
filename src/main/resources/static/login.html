@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            background: #f1f3f6;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: white;
+            padding: 30px;
+            width: 300px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border-radius: 6px;
+        }
+        input, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 8px;
+        }
+        button {
+            background: #2874f0;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Login</h2>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<script>
+function login() {
+    fetch("http://localhost:8060/api/auth/login", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            email: email.value,
+            password: password.value
+        })
+    })
+    .then(res => res.json())
+    .then(user => {
+        localStorage.setItem("userId", user.id);
+        localStorage.setItem("role", user.role);
+        user.role === "ADMIN"
+            ? window.location.href = "admin.html"
+            : window.location.href = "index.html";
+    })
+    .catch(() => alert("Invalid login"));
+}
+</script>
+
+</body>
+</html>

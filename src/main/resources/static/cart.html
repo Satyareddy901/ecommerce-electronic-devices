@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Cart</title>
+    <style>
+        body { font-family: Arial; background: #f1f3f6; padding: 20px; }
+        .item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+        button {
+            background: #2874f0;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>My Cart</h2>
+<div id="cart"></div>
+<br>
+<button onclick="checkout()">Proceed to Payment</button>
+
+<script>
+const userId = localStorage.getItem("userId");
+
+fetch(`http://localhost:8060/api/cart/${userId}`)
+.then(res => res.json())
+.then(data => {
+    const div = document.getElementById("cart");
+    if (data.length === 0) {
+        div.innerHTML = "Cart is empty";
+        return;
+    }
+    data.forEach(i => {
+        div.innerHTML += `<div class="item">Product ID: ${i.productId} | Qty: ${i.quantity}</div>`;
+    });
+});
+
+function checkout() {
+    window.location.href = "payment.html";
+}
+</script>
+
+</body>
+</html>

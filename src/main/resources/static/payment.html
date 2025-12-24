@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment</title>
+    <style>
+        body {
+            background: #f1f3f6;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: white;
+            padding: 30px;
+            width: 300px;
+            border-radius: 6px;
+        }
+        select, button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+        }
+        button {
+            background: green;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Payment</h2>
+    <select id="method">
+        <option>UPI</option>
+        <option>Card</option>
+        <option>COD</option>
+    </select>
+    <button onclick="pay()">Pay Now</button>
+</div>
+
+<script>
+function pay() {
+    fetch("http://localhost:8060/api/payment/pay", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            userId: localStorage.getItem("userId"),
+            amount: 3000,
+            method: method.value
+        })
+    })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        window.location.href = "orders.html";
+    });
+}
+</script>
+
+</body>
+</html>

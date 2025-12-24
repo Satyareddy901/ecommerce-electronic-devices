@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Orders</title>
+</head>
+<body>
+
+<h2>My Orders</h2>
+
+<ul id="orders"></ul>
+
+<script>
+const userId = localStorage.getItem("userId");
+
+fetch(`http://localhost:8060/api/orders/${userId}`)
+.then(res => res.json())
+.then(data => {
+    const ul = document.getElementById("orders");
+
+    if (data.length === 0) {
+        ul.innerHTML = "<li>No orders</li>";
+        return;
+    }
+
+    data.forEach(o => {
+        ul.innerHTML += `
+            <li>
+                Order #${o.id} |
+                Amount: ₹${o.totalAmount} |
+                Status: ${o.status}
+                ${o.status === "PLACED"
+                  ? `<button onclick="cancelOrder(${o.id})">Cancel</button>`
+                  : ""}
+            </li>`;
+    });
+});
+
+function cancelOrder(orderId) {
+    fetch(`http://localhost:8060/api/orders/cancel/${orderId}`, {
+        method: "PUT"
+    })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        location.reload();
+    });
+}
+</script>
+
+</body>
+</html>
