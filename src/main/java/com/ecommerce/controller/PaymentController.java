@@ -4,13 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.ecommerce.entity.CartItem;
 import com.ecommerce.entity.Order;
@@ -21,7 +15,7 @@ import com.ecommerce.repo.PaymentRepository;
 
 @RestController
 @RequestMapping("/api/payment")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:8081")
 public class PaymentController {
 
     @Autowired
@@ -37,25 +31,31 @@ public class PaymentController {
     @PostMapping("/pay")
     public String makePayment(@RequestBody Payment payment) {
 
-        // 1️⃣ Save payment (mock success)
-        payment.setStatus("SUCCESS");
-        payment.setPaymentDate(LocalDateTime.now());
-        paymentRepo.save(payment);
+        // 1️⃣ Validate userId
+        if (payment.getUserId() == null) {
+            return "Invalid user";
+        }
 
         // 2️⃣ Fetch cart items
         List<CartItem> cartItems = cartRepo.findByUserId(payment.getUserId());
 
-        if (cartItems.isEmpty()) {
+        if (cartItems == null || cartItems.isEmpty()) {
             return "Cart is empty. Payment cancelled";
         }
 
-        // 3️⃣ Calculate total (simple logic)
+        // 3️⃣ Calculate total amount
         double totalAmount = 0;
         for (CartItem item : cartItems) {
             totalAmount += item.getQuantity() * 1000; // mock price
         }
 
-        // 4️⃣ Create order
+        // 4️⃣ Save payment
+        payment.setAmount(totalAmount);
+        payment.setStatus("SUCCESS");
+        payment.setPaymentDate(LocalDateTime.now());
+        paymentRepo.save(payment);
+
+        // 5️⃣ Create order
         Order order = new Order();
         order.setUserId(payment.getUserId());
         order.setTotalAmount(totalAmount);
@@ -63,7 +63,7 @@ public class PaymentController {
         order.setOrderDate(LocalDateTime.now());
         orderRepo.save(order);
 
-        // 5️⃣ Clear cart
+        // 6️⃣ Clear cart
         cartRepo.deleteAll(cartItems);
 
         return "Payment Successful & Order Placed";
