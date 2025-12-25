@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment</title>
+</head>
+<body>
+
+<h2>Payment Page</h2>
+
+<label>
+    <input type="radio" name="mode" value="CARD"> Card
+</label><br>
+
+<label>
+    <input type="radio" name="mode" value="UPI"> UPI
+</label><br>
+
+<label>
+    <input type="radio" name="mode" value="COD"> Cash on Delivery
+</label><br><br>
+
+<button id="payBtn">Pay Now</button>
+
+<script>
+console.log("JS loaded"); // 🔥 DEBUG LINE
+
+document.getElementById("payBtn").addEventListener("click", function () {
+
+    console.log("Pay button clicked"); // 🔥 DEBUG LINE
+
+    const selected = document.querySelector('input[name="mode"]:checked');
+
+    if (!selected) {
+        alert("Please select payment mode");
+        return;
+    }
+
+    console.log("Selected mode:", selected.value);
+
+    fetch("/api/payment/pay", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            userId: 1,
+            paymentMethod: selected.value
+        })
+    })
+
+    .then(res => res.text())
+    .then(data => {
+        console.log("Response:", data);
+        alert(data);
+    })
+    .catch(err => {
+        console.error("Fetch error:", err);
+        alert("Payment failed");
+    });
+});
+</script>
+
+</body>
+</html>
